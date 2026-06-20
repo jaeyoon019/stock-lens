@@ -1,142 +1,141 @@
-# GitHub 마일스톤 & 이슈 설정 가이드
+# GitHub Milestones & Issues Setup Guide
 
-## 사전 준비
+## Prerequisites
 
 ```bash
-# GitHub CLI 설치 확인
+# Verify GitHub CLI is installed
 gh --version
 
-# 로그인
+# Authenticate
 gh auth login
 
-# repo 생성 후 이동
+# Create and clone the repo
 gh repo create jaeyoon019/stock-lens --public --clone
 cd stock-lens
 ```
 
 ---
 
-## 라벨 생성
-
-`gh label create`는 공식 지원됨.
+## Create Labels
 
 ```bash
-gh label create "setup"      --color "BFD4F2" --description "초기 세팅"
-gh label create "db"         --color "5319E7" --description "DB / 마이그레이션"
-gh label create "crawler"    --color "0075CA" --description "데이터 수집"
+gh label create "setup"      --color "BFD4F2" --description "Initial setup"
+gh label create "db"         --color "5319E7" --description "Database / migrations"
+gh label create "crawler"    --color "0075CA" --description "Data collection"
 gh label create "ai"         --color "E4E669" --description "AI / LLM"
-gh label create "evaluation" --color "D93F0B" --description "평가 파이프라인"
-gh label create "backend"    --color "0E8A16" --description "FastAPI / 서버"
+gh label create "evaluation" --color "D93F0B" --description "Evaluation pipeline"
+gh label create "backend"    --color "0E8A16" --description "FastAPI / server"
 gh label create "frontend"   --color "F9D0C4" --description "React / UI"
 gh label create "infra"      --color "C5DEF5" --description "Docker / CI"
 ```
 
 ---
 
-## 마일스톤 생성
+## Create Milestones
 
-`gh milestone create`는 공식 CLI에 없음. `gh api`로 생성한다.
+`gh milestone create` is not available in the official CLI — use `gh api` instead.
 
 ```bash
 gh api repos/:owner/:repo/milestones \
   --method POST \
   --field title="Phase 1 — MVP" \
-  --field description="뉴스 수집 + AI 리포트 + 대시보드"
+  --field description="News crawling + AI reports + dashboard"
 
 gh api repos/:owner/:repo/milestones \
   --method POST \
   --field title="Phase 2 — RAG" \
-  --field description="벡터DB + 공시 분석"
+  --field description="Vector DB + filing analysis"
 
 gh api repos/:owner/:repo/milestones \
   --method POST \
   --field title="Phase 3 — Agent" \
-  --field description="LangGraph 멀티에이전트 + 챗봇"
+  --field description="LangGraph multi-agent + chatbot"
 ```
 
-마일스톤 번호 확인:
+Check milestone numbers:
 ```bash
 gh api repos/:owner/:repo/milestones --jq '.[] | {number, title}'
 ```
 
 ---
 
-## Phase 1 이슈 생성
+## Create Phase 1 Issues
 
-아래 실행 전 `--milestone` 번호를 `gh api`로 확인한 값으로 교체할 것.
+Replace `--milestone` number with the value returned by `gh api` above.
 
-### Week 1 — 데이터 수집 + DB
+### Week 1 — Data collection + DB
 
 ```bash
-gh issue create --title "[FEAT] Docker Compose PostgreSQL 세팅" \
-  --body "docker-compose.yml 작성, healthcheck 포함" \
-  --label "setup,infra" --milestone 1
+gh issue create --title "[FEAT] Docker Compose PostgreSQL setup" \
+  --body "Write docker-compose.yml with healthcheck" \
+  --label "setup,infra" --milestone "Phase 1 — MVP"
 
-gh issue create --title "[FEAT] SQLAlchemy 모델 정의 (4개 테이블)" \
+gh issue create --title "[FEAT] Define SQLAlchemy models (4 tables)" \
   --body "stocks, articles, reports, evaluations" \
-  --label "db" --milestone 1
+  --label "db" --milestone "Phase 1 — MVP"
 
-gh issue create --title "[FEAT] Alembic 초기 마이그레이션" \
-  --body "alembic init + 첫 revision 생성" \
-  --label "db" --milestone 1
+gh issue create --title "[FEAT] Initial Alembic migration" \
+  --body "alembic init + generate first revision" \
+  --label "db" --milestone "Phase 1 — MVP"
 
-gh issue create --title "[FEAT] Yahoo Finance RSS 크롤러" \
-  --body "feedparser 기반, url_hash 중복 제거" \
-  --label "crawler" --milestone 1
+gh issue create --title "[FEAT] Yahoo Finance RSS crawler" \
+  --body "feedparser-based, dedup by url_hash" \
+  --label "crawler" --milestone "Phase 1 — MVP"
 
-gh issue create --title "[FEAT] 네이버 금융 크롤러" \
-  --body "requests + BeautifulSoup 기반" \
-  --label "crawler" --milestone 1
+gh issue create --title "[FEAT] Naver Finance crawler" \
+  --body "requests + BeautifulSoup" \
+  --label "crawler" --milestone "Phase 1 — MVP"
 
-gh issue create --title "[FEAT] DB upsert 로직 (article 중복 방지)" \
-  --body "url_hash 기반 ON CONFLICT DO NOTHING" \
-  --label "crawler,db" --milestone 1
+gh issue create --title "[FEAT] DB upsert logic (article deduplication)" \
+  --body "url_hash-based ON CONFLICT DO NOTHING" \
+  --label "crawler,db" --milestone "Phase 1 — MVP"
 ```
 
-### Week 2 — AI 파이프라인
+### Week 2 — AI pipeline
 
 ```bash
-gh issue create --title "[FEAT] OpenAI Structured Output 리포트 생성기" \
+gh issue create --title "[FEAT] OpenAI Structured Output report generator" \
   --body "bull_points, bear_points, overall_summary, confidence_score" \
-  --label "ai" --milestone 1
+  --label "ai" --milestone "Phase 1 — MVP"
 
-gh issue create --title "[FEAT] Pydantic v2 리포트 스키마 정의" \
-  --body "ReportOutput 모델, JSON mode" \
-  --label "ai" --milestone 1
+gh issue create --title "[FEAT] Define Pydantic v2 report schema" \
+  --body "ReportOutput model, JSON mode" \
+  --label "ai" --milestone "Phase 1 — MVP"
 
-gh issue create --title "[FEAT] LLM-as-judge 평가 파이프라인" \
-  --body "생성된 리포트를 2차 LLM 호출로 0.0-1.0 점수 부여" \
-  --label "ai,evaluation" --milestone 1
+gh issue create --title "[FEAT] LLM-as-judge evaluation pipeline" \
+  --body "Score generated reports 0.0–1.0 via a second LLM call" \
+  --label "ai,evaluation" --milestone "Phase 1 — MVP"
 
-gh issue create --title "[FEAT] FastAPI REST 엔드포인트" \
+gh issue create --title "[FEAT] FastAPI REST endpoints" \
   --body "GET /stocks, GET /reports, GET /reports/{id}" \
-  --label "backend" --milestone 1
+  --label "backend" --milestone "Phase 1 — MVP"
 ```
 
-### Week 3 — 프론트엔드 + 자동화
+### Week 3 — Frontend + automation
 
 ```bash
-gh issue create --title "[FEAT] React 프로젝트 세팅 (Vite + TS + Tailwind)" \
-  --label "frontend,setup" --milestone 1
+gh issue create --title "[FEAT] React project setup (Vite + TS + Tailwind)" \
+  --body "Vite + React 18 + TypeScript + TailwindCSS initial setup" \
+  --label "frontend,setup" --milestone "Phase 1 — MVP"
 
-gh issue create --title "[FEAT] 종목 검색 + 리포트 뷰어 페이지" \
-  --body "TanStack Query로 FastAPI 연동" \
-  --label "frontend" --milestone 1
+gh issue create --title "[FEAT] Ticker search + report viewer page" \
+  --body "Connect to FastAPI via TanStack Query" \
+  --label "frontend" --milestone "Phase 1 — MVP"
 
-gh issue create --title "[FEAT] Recharts 리포트 히스토리 차트" \
-  --body "날짜별 confidence_score 시계열" \
-  --label "frontend" --milestone 1
+gh issue create --title "[FEAT] Recharts report history chart" \
+  --body "Time-series confidence_score by date" \
+  --label "frontend" --milestone "Phase 1 — MVP"
 
-gh issue create --title "[FEAT] GitHub Actions 일일 자동 크롤링" \
-  --body "daily_crawler.yml, PostgreSQL service container 포함" \
-  --label "infra" --milestone 1
+gh issue create --title "[FEAT] GitHub Actions daily crawler automation" \
+  --body "daily_crawler.yml with PostgreSQL service container" \
+  --label "infra" --milestone "Phase 1 — MVP"
 ```
 
 ---
 
-## GitHub Secrets 설정
+## Set GitHub Secrets
 
 ```bash
 gh secret set OPENAI_API_KEY
-gh secret set CRAWL_TICKERS   # 예: AAPL,NVDA,005930,000660
+gh secret set CRAWL_TICKERS   # e.g. AAPL,NVDA,005930,000660
 ```
