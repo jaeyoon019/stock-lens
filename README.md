@@ -1,4 +1,4 @@
-# 📈 stock-lens
+# stock-lens
 
 > AI-powered investment research assistant — collects financial news, generates structured bull/bear reports per ticker, and evaluates output quality automatically.
 
@@ -15,7 +15,7 @@
 **stock-lens** is a personal AI research assistant for stock market analysis built as a portfolio project.
 
 Core capabilities:
-- Multi-source news crawling with deduplication (Yahoo Finance RSS, 네이버 금융)
+- Multi-source news crawling with deduplication (Yahoo Finance RSS, Naver Finance)
 - Structured AI report generation (bull/bear points, confidence score) via OpenAI Structured Output
 - LLM-as-judge evaluation pipeline to track report quality over time
 - Daily automation via GitHub Actions
@@ -26,7 +26,7 @@ Core capabilities:
 ## Architecture
 
 ```
-News Sources (Yahoo Finance RSS, 네이버 금융)
+News Sources (Yahoo Finance RSS, Naver Finance)
         │
         ▼
 Crawler (Python)          ← runs daily via GitHub Actions
@@ -109,26 +109,26 @@ stock-lens/
 
 Full ERD: [`docs/architecture/erd.mmd`](docs/architecture/erd.mmd) (render at [mermaid.live](https://mermaid.live))
 
-| Table         | Description                                          |
-|---------------|------------------------------------------------------|
-| `stocks`      | 종목 메타데이터 (ticker, name, market, sector)         |
-| `articles`    | 크롤링된 뉴스 (url_hash로 중복 제거, AI 요약 포함)      |
-| `reports`     | 종목별 일일 bull/bear 리포트 + confidence_score        |
-| `evaluations` | LLM-as-judge 점수 및 피드백 (0.0–1.0)                |
+| Table         | Description                                                  |
+|---------------|--------------------------------------------------------------|
+| `stocks`      | Ticker metadata (ticker, name, market, sector)               |
+| `articles`    | Crawled news articles (deduplicated by url_hash, AI summary) |
+| `reports`     | Daily bull/bear report per ticker + confidence_score         |
+| `evaluations` | LLM-as-judge scores and feedback (0.0–1.0)                   |
 
 ---
 
 ## Environment Variables
 
-`.env.example` 참고. 실제 `.env`는 절대 커밋하지 않는다.
+See `.env.example`. Never commit the actual `.env` file.
 
-| Variable           | Description                  | Example                              |
-|--------------------|------------------------------|--------------------------------------|
-| `DATABASE_URL`     | PostgreSQL 연결 문자열          | `postgresql+asyncpg://user:pw@db/stocklens` |
-| `OPENAI_API_KEY`   | OpenAI API 키                 | `sk-...`                             |
-| `OPENAI_MODEL`     | 사용할 모델                    | `gpt-4o-mini`                        |
-| `CRAWL_TICKERS`    | 크롤링 대상 종목 (쉼표 구분)      | `AAPL,005930,NVDA`                   |
-| `LOG_LEVEL`        | 로그 레벨                      | `INFO`                               |
+| Variable           | Description                   | Example                                     |
+|--------------------|-------------------------------|---------------------------------------------|
+| `DATABASE_URL`     | PostgreSQL connection string  | `postgresql+asyncpg://user:pw@db/stocklens` |
+| `OPENAI_API_KEY`   | OpenAI API key                | `sk-...`                                    |
+| `OPENAI_MODEL`     | Model to use                  | `gpt-4o-mini`                               |
+| `CRAWL_TICKERS`    | Tickers to crawl (comma-sep)  | `AAPL,005930,NVDA`                          |
+| `LOG_LEVEL`        | Log level                     | `INFO`                                      |
 
 ---
 
@@ -145,7 +145,7 @@ Full ERD: [`docs/architecture/erd.mmd`](docs/architecture/erd.mmd) (render at [m
 git clone https://github.com/jaeyoon019/stock-lens.git
 cd stock-lens
 cp backend/.env.example backend/.env
-# .env에 OPENAI_API_KEY, CRAWL_TICKERS 입력
+# Fill in OPENAI_API_KEY and CRAWL_TICKERS in .env
 ```
 
 ### 2. Start services
@@ -154,9 +154,9 @@ cp backend/.env.example backend/.env
 docker compose up -d
 ```
 
-이것만으로 PostgreSQL + FastAPI + 마이그레이션이 모두 실행된다.
+This single command starts PostgreSQL + FastAPI + runs DB migrations.
 
-### 3. Frontend (개발 모드)
+### 3. Frontend (dev mode)
 
 ```bash
 cd frontend
@@ -164,7 +164,7 @@ npm install
 npm run dev
 ```
 
-`http://localhost:5173` 에서 대시보드 확인.
+Dashboard available at `http://localhost:5173`.
 
 ### 4. Run crawler manually
 
@@ -176,32 +176,32 @@ docker compose exec backend python -m crawler.main
 
 ## OpenAI Cost Estimate
 
-| 항목             | 모델         | 예상 토큰/일  | 예상 비용/월  |
-|------------------|-------------|-------------|-------------|
-| 뉴스 요약         | gpt-4o-mini | ~50k tokens | ~$0.03      |
-| 리포트 생성       | gpt-4o-mini | ~30k tokens | ~$0.02      |
-| LLM 평가         | gpt-4o-mini | ~20k tokens | ~$0.01      |
-| **합계**         |             |             | **~$0.06/월** |
+| Item               | Model        | Est. tokens/day | Est. cost/month |
+|--------------------|--------------|-----------------|-----------------|
+| News summarization | gpt-4o-mini  | ~50k tokens     | ~$0.03          |
+| Report generation  | gpt-4o-mini  | ~30k tokens     | ~$0.02          |
+| LLM evaluation     | gpt-4o-mini  | ~20k tokens     | ~$0.01          |
+| **Total**          |              |                 | **~$0.06/mo**   |
 
-종목 수와 뉴스 수에 따라 변동. 10개 종목 기준 추정치.
+Estimate based on ~10 tickers. Actual cost varies with news volume.
 
 ---
 
-## Data Sources & Policy
+## Data Sources
 
-| 소스               | 방식              | 크롤링 주기 | 비고                  |
-|--------------------|-----------------|----------|----------------------|
-| Yahoo Finance RSS  | RSS 파싱          | 매일 07:00 KST | robots.txt 준수       |
-| 네이버 금융         | HTML 파싱 (requests) | 매일 07:00 KST | 과도한 요청 자제, 1s 딜레이 |
+| Source            | Method       | Schedule        | Notes                         |
+|-------------------|--------------|-----------------|-------------------------------|
+| Yahoo Finance RSS | RSS parsing  | Daily 07:00 KST | robots.txt compliant          |
+| Naver Finance     | HTML parsing | Daily 07:00 KST | 1s delay, personal use only   |
 
-개인 학습 목적의 프로젝트. 수집 데이터는 외부에 재배포하지 않는다.
+This is a personal learning project. Collected data is not redistributed.
 
 ---
 
 ## Evaluation Framework
 
 ```python
-# 모든 생성 리포트는 자동으로 평가됨
+# Every generated report is automatically evaluated
 {
   "judge_score": 0.82,   # 0.0 – 1.0
   "judge_feedback": "Bull points well-supported. Bear section lacks specificity.",
@@ -209,16 +209,16 @@ docker compose exec backend python -m crawler.main
 }
 ```
 
-`evaluations` 테이블에 누적 저장되어 프롬프트 개선 효과를 시계열로 추적할 수 있다.
+Scores are stored in the `evaluations` table, enabling time-series tracking of prompt improvement.
 
 ---
 
 ## Roadmap
 
-- [x] Phase 0 — 프로젝트 설계 및 문서화
-- [ ] Phase 1 — MVP: 뉴스 수집 + AI 리포트 + 대시보드 (Week 1–3)
-- [ ] Phase 2 — RAG: 벡터DB + 공시 분석 (Week 4–7)
-- [ ] Phase 3 — Agent: LangGraph 멀티에이전트 + 챗봇 (Week 8+)
+- [x] Phase 0 — Project design and documentation
+- [ ] Phase 1 — MVP: news crawling + AI reports + dashboard (Week 1–3)
+- [ ] Phase 2 — RAG: vector DB + filing analysis (Week 4–7)
+- [ ] Phase 3 — Agent: LangGraph multi-agent + chatbot (Week 8+)
 
 ---
 
