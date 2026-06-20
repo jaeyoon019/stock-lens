@@ -48,6 +48,7 @@ jobs:
         run: alembic upgrade head
 
       - name: Run crawler
+        # runs from repo root — crawler/ is at the top level
         run: python crawler/main.py
 
       - name: Run report generator
