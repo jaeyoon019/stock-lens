@@ -1,0 +1,49 @@
+erDiagram
+  stocks {
+    uuid id PK
+    string ticker
+    string name
+    string market "KRX | NASDAQ | NYSE"
+    string sector
+    timestamp created_at
+    timestamp updated_at
+  }
+
+  articles {
+    uuid id PK
+    uuid stock_id FK
+    string title
+    string source "yahoo | naver | seeking_alpha"
+    string url
+    string url_hash "unique — dedup key"
+    text content
+    text summary
+    string sentiment "positive | neutral | negative"
+    timestamp published_at
+    timestamp created_at
+  }
+
+  reports {
+    uuid id PK
+    uuid stock_id FK
+    date report_date
+    json bull_points
+    json bear_points
+    text overall_summary
+    float confidence_score
+    int article_count
+    timestamp created_at
+  }
+
+  evaluations {
+    uuid id PK
+    uuid report_id FK
+    float judge_score "0.0 – 1.0"
+    text judge_feedback
+    string model_used
+    timestamp created_at
+  }
+
+  stocks ||--o{ articles : "has"
+  stocks ||--o{ reports : "generates"
+  reports ||--o{ evaluations : "scored by"

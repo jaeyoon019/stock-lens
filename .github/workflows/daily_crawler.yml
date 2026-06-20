@@ -1,0 +1,59 @@
+name: Daily Crawler
+
+on:
+  schedule:
+    - cron: '0 22 * * *'   # 매일 오전 7시 KST (UTC 22:00)
+  workflow_dispatch:        # 수동 실행
+
+jobs:
+  crawl:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: stocklens
+          POSTGRES_PASSWORD: stocklens
+          POSTGRES_DB: stocklens
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    env:
+      DATABASE_URL: postgresql+asyncpg://stocklens:stocklens@localhost/stocklens
+      OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+      OPENAI_MODEL: gpt-4o-mini
+      CRAWL_TICKERS: ${{ secrets.CRAWL_TICKERS }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+          cache-dependency-path: backend/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r backend/requirements.txt
+
+      - name: Run DB migrations
+        working-directory: backend
+        run: alembic upgrade head
+
+      - name: Run crawler
+        run: python crawler/main.py
+
+      - name: Run report generator
+        working-directory: backend
+        run: python -m app.services.report_generator
+
+      - name: Run evaluator
+        working-directory: backend
+        run: python -m app.ai.evaluator
