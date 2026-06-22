@@ -1,6 +1,6 @@
 """initial schema
 
-Revision ID: 001
+Revision ID: 3a1f9b2c0d4e
 Revises:
 Create Date: 2026-06-22
 
@@ -9,7 +9,7 @@ from alembic import op
 import sqlalchemy as sa
 from sqlalchemy.dialects import postgresql
 
-revision = '001'
+revision = '3a1f9b2c0d4e'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -23,12 +23,28 @@ def upgrade() -> None:
         sa.Column('ticker', sa.String(20), nullable=False),
         sa.Column('name', sa.String(200), nullable=False),
         sa.Column('market', sa.String(20), nullable=False),
-        sa.Column('sector', sa.String(100), nullable=True),
+        sa.Column('sector', sa.String(100)),
         sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
         sa.Column('updated_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
         sa.PrimaryKeyConstraint('id'),
-        sa.UniqueConstraint('ticker'),
+        sa.UniqueConstraint('ticker', name='uq_stocks_ticker'),
     )
+
+    # DB-level trigger so updated_at stays accurate even on bulk/raw SQL updates
+    op.execute("""
+        CREATE OR REPLACE FUNCTION trigger_set_updated_at()
+        RETURNS TRIGGER AS $$
+        BEGIN
+            NEW.updated_at = now();
+            RETURN NEW;
+        END;
+        $$ LANGUAGE plpgsql
+    """)
+    op.execute("""
+        CREATE TRIGGER set_updated_at
+        BEFORE UPDATE ON stocks
+        FOR EACH ROW EXECUTE FUNCTION trigger_set_updated_at()
+    """)
 
     # articles
     op.create_table(
@@ -39,10 +55,10 @@ def upgrade() -> None:
         sa.Column('source', sa.String(50), nullable=False),
         sa.Column('url', sa.String(2000), nullable=False),
         sa.Column('url_hash', sa.String(64), nullable=False),
-        sa.Column('content', sa.Text(), nullable=True),
-        sa.Column('summary', sa.Text(), nullable=True),
-        sa.Column('sentiment', sa.String(20), nullable=True),
-        sa.Column('published_at', sa.TIMESTAMP(), nullable=True),
+        sa.Column('content', sa.Text()),
+        sa.Column('summary', sa.Text()),
+        sa.Column('sentiment', sa.String(20)),
+        sa.Column('published_at', sa.TIMESTAMP()),
         sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
         sa.ForeignKeyConstraint(['stock_id'], ['stocks.id']),
         sa.PrimaryKeyConstraint('id'),
@@ -59,7 +75,7 @@ def upgrade() -> None:
         sa.Column('bear_points', postgresql.JSON(astext_type=sa.Text()), nullable=False),
         sa.Column('overall_summary', sa.Text(), nullable=False),
         sa.Column('confidence_score', sa.Float(), nullable=False),
-        sa.Column('article_count', sa.Integer(), nullable=True),
+        sa.Column('article_count', sa.Integer(), nullable=False, server_default=sa.text('0')),
         sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('now()'), nullable=False),
         sa.ForeignKeyConstraint(['stock_id'], ['stocks.id']),
         sa.PrimaryKeyConstraint('id'),
@@ -84,4 +100,6 @@ def downgrade() -> None:
     op.drop_table('evaluations')
     op.drop_table('reports')
     op.drop_table('articles')
+    op.execute('DROP TRIGGER IF EXISTS set_updated_at ON stocks')
+    op.execute('DROP FUNCTION IF EXISTS trigger_set_updated_at')
     op.drop_table('stocks')
