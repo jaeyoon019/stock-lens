@@ -14,7 +14,7 @@ AI-powered stock research assistant. Crawls financial news daily, generates stru
 | Naver Finance crawler | **Stub** — `crawler/collectors/naver.py` |
 | Report generator | **Stub** — `backend/app/services/report_generator.py` |
 | LLM evaluator | **Stub** — `backend/app/ai/evaluator.py` |
-| DB upsert in crawler | **Stub** — `crawler/main.py` (TODO comment) |
+| DB upsert in crawler | Implemented — `crawler/main.py` |
 | React frontend | Scaffold only |
 
 Do not treat stubs as implemented. Check the file before assuming functionality exists.
