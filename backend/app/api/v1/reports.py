@@ -15,9 +15,9 @@ async def list_reports(
     ticker: str | None = Query(None),
     from_date: date | None = Query(None),
     limit: int = Query(default=100, ge=1, le=500),
-    db: DBSession,
+    db: DBSession = None,
 ):
-    q = select(Report).order_by(Report.report_date.desc()).limit(limit)
+    q = select(Report).order_by(Report.report_date.desc())
 
     if ticker:
         q = q.join(Stock).where(Stock.ticker == ticker.strip().upper())
@@ -25,7 +25,7 @@ async def list_reports(
     if from_date:
         q = q.where(Report.report_date >= from_date)
 
-    result = await db.execute(q)
+    result = await db.execute(q.limit(limit))
     return result.scalars().all()
 
 

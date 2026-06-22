@@ -2,8 +2,10 @@
 import hashlib
 from dataclasses import dataclass
 from datetime import datetime, timezone
+from urllib.parse import quote
 
 import feedparser
+import httpx
 
 
 @dataclass
@@ -19,8 +21,10 @@ class RawArticle:
 
 def fetch_yahoo_rss(ticker: str) -> list[RawArticle]:
     """Fetch articles from Yahoo Finance RSS for a given ticker."""
-    url = f"https://feeds.finance.yahoo.com/rss/2.0/headline?s={ticker}&region=US&lang=en-US"
-    feed = feedparser.parse(url)
+    url = f"https://feeds.finance.yahoo.com/rss/2.0/headline?s={quote(ticker, safe='')}&region=US&lang=en-US"
+    response = httpx.get(url, timeout=10, follow_redirects=True)
+    response.raise_for_status()
+    feed = feedparser.parse(response.content)
 
     articles = []
     for entry in feed.entries:
@@ -28,6 +32,10 @@ def fetch_yahoo_rss(ticker: str) -> list[RawArticle]:
         if not raw_url:
             continue
         url_hash = hashlib.sha256(raw_url.encode()).hexdigest()
+
+        title = entry.get("title", "").strip()
+        if not title:
+            continue
 
         published = None
         published_parsed = entry.get("published_parsed")
@@ -37,7 +45,7 @@ def fetch_yahoo_rss(ticker: str) -> list[RawArticle]:
         articles.append(
             RawArticle(
                 ticker=ticker,
-                title=entry.get("title", ""),
+                title=title,
                 url=raw_url,
                 url_hash=url_hash,
                 source="yahoo",

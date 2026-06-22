@@ -3,9 +3,9 @@ services:
     image: postgres:16-alpine
     restart: unless-stopped
     environment:
-      POSTGRES_USER: stocklens
-      POSTGRES_PASSWORD: stocklens
-      POSTGRES_DB: stocklens
+      POSTGRES_USER: ${POSTGRES_USER:-stocklens}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-stocklens}
+      POSTGRES_DB: ${POSTGRES_DB:-stocklens}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:

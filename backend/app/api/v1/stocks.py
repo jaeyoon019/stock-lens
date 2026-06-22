@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import select
 
 from app.core.database import DBSession
@@ -8,8 +8,8 @@ router = APIRouter()
 
 
 @router.get("/")
-async def list_stocks(db: DBSession):
-    result = await db.execute(select(Stock).order_by(Stock.ticker))
+async def list_stocks(limit: int = Query(default=100, ge=1, le=500), db: DBSession = None):
+    result = await db.execute(select(Stock).order_by(Stock.ticker).limit(limit))
     return result.scalars().all()
 
 

@@ -69,6 +69,8 @@ async def generate_for_stock(
         ],
         response_format=ReportOutput,
     )
+    if not response.choices:
+        raise RuntimeError(f"OpenAI returned empty choices for {ticker!r}")
     output = response.choices[0].message.parsed
     if output is None:
         raise RuntimeError(
@@ -113,7 +115,7 @@ async def generate_for_stock(
 async def run() -> None:
     today = date.today()
     log.info("Report generator — %s", today)
-    client = AsyncOpenAI(api_key=settings.openai_api_key)
+    client = AsyncOpenAI(api_key=settings.openai_api_key.get_secret_value())
 
     async with AsyncSessionLocal() as session:
         # Select scalars only; avoids detached-instance access on ORM objects.

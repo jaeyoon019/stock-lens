@@ -59,6 +59,8 @@ async def evaluate_report(
         ],
         response_format=EvalOutput,
     )
+    if not response.choices:
+        raise RuntimeError(f"OpenAI returned empty choices for {ticker!r} {report_date}")
     output = response.choices[0].message.parsed
     if output is None:
         raise RuntimeError(
@@ -98,10 +100,11 @@ async def evaluate_report(
 async def run() -> None:
     today = date.today()
     log.info("Evaluator — %s", today)
-    client = AsyncOpenAI(api_key=settings.openai_api_key)
+    client = AsyncOpenAI(api_key=settings.openai_api_key.get_secret_value())
 
     async with AsyncSessionLocal() as session:
         # Select scalars only; avoids detached-instance access on ORM objects.
+        # Pre-filter already-evaluated reports at the DB level to avoid one session per report.
         rows = (
             await session.execute(
                 select(
@@ -116,6 +119,12 @@ async def run() -> None:
                 )
                 .join(Stock)
                 .where(Report.report_date == today)
+                .where(
+                    ~select(Evaluation.id)
+                    .where(Evaluation.report_id == Report.id)
+                    .correlate(Report)
+                    .exists()
+                )
             )
         ).all()
 
