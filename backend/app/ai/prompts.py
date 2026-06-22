@@ -15,7 +15,6 @@ articles are.
   0.0-0.3 = very little signal (vague or too few articles)
   0.4-0.6 = mixed or moderate signal
   0.7-1.0 = strong, clear signal
-- article_count: the total number of articles provided to you.
 
 Rules:
 - Base every point strictly on facts from the provided articles. Do not use \

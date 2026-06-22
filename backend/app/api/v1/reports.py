@@ -15,12 +15,13 @@ router = APIRouter()
 async def list_reports(
     ticker: str | None = Query(None),
     from_date: date | None = Query(None),
+    limit: int = Query(default=100, ge=1, le=500),
     db: AsyncSession = Depends(get_db),
 ):
-    q = select(Report).order_by(Report.report_date.desc())
+    q = select(Report).order_by(Report.report_date.desc()).limit(limit)
 
     if ticker:
-        q = q.join(Stock).where(Stock.ticker == ticker.upper())
+        q = q.join(Stock).where(Stock.ticker == ticker.strip().upper())
 
     if from_date:
         q = q.where(Report.report_date >= from_date)

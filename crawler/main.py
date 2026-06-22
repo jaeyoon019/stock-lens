@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "backend"))
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert as pg_insert
 
+from app.core.config import settings
 from app.core.database import AsyncSessionLocal
 from app.models.models import Article, Stock
 from collectors.yahoo import RawArticle, fetch_yahoo_rss
@@ -17,7 +18,7 @@ from collectors.yahoo import RawArticle, fetch_yahoo_rss
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 log = logging.getLogger(__name__)
 
-TICKERS = os.getenv("CRAWL_TICKERS", "AAPL,NVDA").split(",")
+TICKERS = settings.ticker_list
 
 
 async def upsert_articles(ticker: str, articles: list[RawArticle], market: str) -> int:
@@ -70,15 +71,14 @@ async def upsert_articles(ticker: str, articles: list[RawArticle], market: str) 
 
 async def run():
     for ticker in TICKERS:
-        ticker = ticker.strip()
         try:
-            log.info(f"Crawling {ticker}...")
+            log.info("Crawling %s...", ticker)
             articles = await asyncio.to_thread(fetch_yahoo_rss, ticker)
-            log.info(f"  {len(articles)} articles fetched")
+            log.info("  %d articles fetched", len(articles))
             inserted = await upsert_articles(ticker, articles, market="US")
-            log.info(f"  {inserted} new articles saved (duplicates skipped)")
+            log.info("  %d new articles saved (duplicates skipped)", inserted)
         except Exception:
-            log.exception(f"  Failed to process {ticker} — skipping")
+            log.exception("  Failed to process %s — skipping", ticker)
 
 
 if __name__ == "__main__":

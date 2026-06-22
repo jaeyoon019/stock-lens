@@ -1,7 +1,7 @@
 """Yahoo Finance RSS collector."""
 import hashlib
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 
 import feedparser
 
@@ -25,11 +25,14 @@ def fetch_yahoo_rss(ticker: str) -> list[RawArticle]:
     articles = []
     for entry in feed.entries:
         raw_url = entry.get("link", "")
+        if not raw_url:
+            continue
         url_hash = hashlib.sha256(raw_url.encode()).hexdigest()
 
         published = None
-        if hasattr(entry, "published_parsed") and entry.published_parsed:
-            published = datetime(*entry.published_parsed[:6])
+        published_parsed = entry.get("published_parsed")
+        if published_parsed:
+            published = datetime(*published_parsed[:6], tzinfo=timezone.utc)
 
         articles.append(
             RawArticle(
