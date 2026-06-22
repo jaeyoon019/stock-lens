@@ -1,4 +1,5 @@
 from datetime import date
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
@@ -29,7 +30,7 @@ async def list_reports(
 
 
 @router.get("/{report_id}")
-async def get_report(report_id: str, db: AsyncSession = Depends(get_db)):
+async def get_report(report_id: UUID, db: AsyncSession = Depends(get_db)):
     result = await db.execute(select(Report).where(Report.id == report_id))
     report = result.scalar_one_or_none()
     if not report:
