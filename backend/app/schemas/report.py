@@ -6,3 +6,4 @@ class ReportOutput(BaseModel):
     bear_points: list[str] = Field(default_factory=list)
     overall_summary: str = ""
     confidence_score: float = Field(ge=0.0, le=1.0, default=0.5)
+    article_count: int = Field(ge=0, default=0)
