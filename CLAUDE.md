@@ -12,8 +12,8 @@ AI-powered stock research assistant. Crawls financial news daily, generates stru
 | Yahoo Finance RSS crawler | Implemented |
 | SQLAlchemy models + Alembic migrations | Implemented |
 | Naver Finance crawler | **Stub** — `crawler/collectors/naver.py` |
-| Report generator | **Stub** — `backend/app/services/report_generator.py` |
-| LLM evaluator | **Stub** — `backend/app/ai/evaluator.py` |
+| Report generator | Implemented — `backend/app/services/report_generator.py` |
+| LLM evaluator | Implemented — `backend/app/ai/evaluator.py` |
 | DB upsert in crawler | Implemented — `crawler/main.py` |
 | Local scheduler | **Stub** — `crawler/jobs/scheduler.py` (scheduling via GitHub Actions cron; APScheduler for local use only) |
 | React frontend | Scaffold only |
