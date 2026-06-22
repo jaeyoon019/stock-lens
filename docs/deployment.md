@@ -29,6 +29,9 @@ alembic upgrade head   ← apply any pending migrations
 uvicorn app.main:app   ← start the API server
 ```
 
+> This startup sequence comes from the `command:` override in `docker-compose.yml`, not the Dockerfile.
+> The Dockerfile `CMD` provides the same default so the image also works standalone (`docker run`).
+
 ### Stop
 
 ```bash
@@ -134,10 +137,12 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY . .
+CMD ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000"]
 ```
 
+The `CMD` is the production default. Docker Compose overrides it with `--reload` for live-reloading during development.
 The source directory (`./backend`) is also mounted as a volume in Docker Compose,
-so code changes take effect without rebuilding the image during development.
+so code changes take effect without rebuilding the image.
 
 ---
 
