@@ -69,11 +69,11 @@ React Dashboard           ← TanStack Query + Recharts + TailwindCSS
 stock-lens/
 ├── backend/
 │   ├── app/
-│   │   ├── api/v1/          # FastAPI routers (stocks, articles, reports)
+│   │   ├── api/v1/          # FastAPI routers (stocks.py, reports.py)
 │   │   ├── core/            # config.py, database.py
 │   │   ├── models/          # SQLAlchemy ORM models
 │   │   ├── schemas/         # Pydantic v2 request/response schemas
-│   │   ├── services/        # report_generator.py, crawler_service.py
+│   │   ├── services/        # report_generator.py
 │   │   ├── ai/              # evaluator.py, prompts.py
 │   │   └── main.py
 │   ├── alembic/             # DB migrations
@@ -90,15 +90,25 @@ stock-lens/
 │       ├── pages/
 │       ├── components/
 │       ├── hooks/
-│       ├── services/        # api.ts
-│       └── types/
+│       ├── services/        # api.ts (axios client)
+│       └── types/           # TypeScript interfaces
 ├── docs/
+│   ├── ai-pipeline.md       # Report generation + LLM evaluation design
+│   ├── api.md               # REST API reference
+│   ├── database.md          # Schema + Alembic migration guide
+│   ├── deployment.md        # Docker Compose + GitHub Actions
+│   ├── development.md       # Local dev setup
+│   ├── github-setup.md      # Labels, milestones, secrets
+│   ├── testing.md           # Test guide
 │   └── architecture/
+│       ├── overview.md      # Component diagram
+│       ├── data-flow.md     # End-to-end data flow
 │       └── erd.mmd          # Mermaid ERD
 ├── .github/
 │   ├── ISSUE_TEMPLATE/
 │   └── workflows/
 │       └── daily_crawler.yml
+├── CLAUDE.md
 ├── docker-compose.yml
 └── README.md
 ```
