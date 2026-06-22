@@ -29,8 +29,8 @@ alembic upgrade head   ← apply any pending migrations
 uvicorn app.main:app   ← start the API server
 ```
 
-> This startup sequence comes from the `command:` override in `docker-compose.yml`, not the Dockerfile.
-> The Dockerfile `CMD` provides the same default so the image also works standalone (`docker run`).
+> The Dockerfile `CMD` defines this startup sequence as the default.
+> Docker Compose's `command:` override adds `--reload` for development; the `CMD` is used as-is when running the image standalone (`docker run`).
 
 ### Stop
 
