@@ -20,24 +20,30 @@ log = logging.getLogger(__name__)
 TICKERS = os.getenv("CRAWL_TICKERS", "AAPL,NVDA").split(",")
 
 
-async def upsert_articles(ticker: str, articles: list[RawArticle]) -> int:
+async def upsert_articles(ticker: str, articles: list[RawArticle], market: str) -> int:
     """Persist articles to DB. Returns the count of newly inserted rows."""
+    # Guard before opening any DB connection — avoids a pointless Stock commit.
+    if not articles:
+        return 0
+
     async with AsyncSessionLocal() as session:
         async with session.begin():
-            # Ensure a Stock row exists for this ticker (name/market filled as
-            # placeholders — real metadata can be enriched separately).
+            # Ensure a Stock row exists. market is caller-supplied so KRX tickers
+            # are not permanently mislabelled "US" by a default.
             await session.execute(
                 pg_insert(Stock)
-                .values(id=uuid.uuid4(), ticker=ticker, name=ticker, market="US")
+                .values(id=uuid.uuid4(), ticker=ticker, name=ticker, market=market)
                 .on_conflict_do_nothing(index_elements=["ticker"])
             )
 
-            stock_id: uuid.UUID = (
+            stock_id: uuid.UUID | None = (
                 await session.execute(select(Stock.id).where(Stock.ticker == ticker))
-            ).scalar_one()
+            ).scalar_one_or_none()
 
-            if not articles:
-                return 0
+            if stock_id is None:
+                raise RuntimeError(
+                    f"Stock row missing for {ticker!r} after upsert — concurrent delete?"
+                )
 
             result = await session.execute(
                 pg_insert(Article)
@@ -65,11 +71,14 @@ async def upsert_articles(ticker: str, articles: list[RawArticle]) -> int:
 async def run():
     for ticker in TICKERS:
         ticker = ticker.strip()
-        log.info(f"Crawling {ticker}...")
-        articles = fetch_yahoo_rss(ticker)
-        log.info(f"  {len(articles)} articles fetched")
-        inserted = await upsert_articles(ticker, articles)
-        log.info(f"  {inserted} new articles saved (duplicates skipped)")
+        try:
+            log.info(f"Crawling {ticker}...")
+            articles = await asyncio.to_thread(fetch_yahoo_rss, ticker)
+            log.info(f"  {len(articles)} articles fetched")
+            inserted = await upsert_articles(ticker, articles, market="US")
+            log.info(f"  {inserted} new articles saved (duplicates skipped)")
+        except Exception:
+            log.exception(f"  Failed to process {ticker} — skipping")
 
 
 if __name__ == "__main__":
