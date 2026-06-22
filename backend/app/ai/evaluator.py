@@ -69,6 +69,15 @@ async def evaluate_report(
     # Short write transaction — API call is already done.
     async with AsyncSessionLocal() as session:
         async with session.begin():
+            # Re-check inside the transaction — prevents duplicate evaluations
+            # if two concurrent process invocations both passed the initial read check.
+            if (
+                await session.execute(
+                    select(Evaluation.id).where(Evaluation.report_id == report_id)
+                )
+            ).scalar_one_or_none():
+                log.info("%s %s: evaluation appeared between check and insert (concurrent run), skipping", ticker, report_date)
+                return
             session.add(
                 Evaluation(
                     report_id=report_id,

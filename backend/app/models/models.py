@@ -29,6 +29,7 @@ class Article(Base):
     __table_args__ = (
         UniqueConstraint("url_hash", name="uq_articles_url_hash"),
         Index("ix_articles_stock_id", "stock_id"),
+        Index("ix_articles_published_at", "published_at"),
     )
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)

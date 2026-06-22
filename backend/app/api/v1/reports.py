@@ -1,11 +1,10 @@
 from datetime import date
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query
 from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.database import get_db
+from app.core.database import DBSession
 from app.models.models import Report, Stock
 
 router = APIRouter()
@@ -16,7 +15,7 @@ async def list_reports(
     ticker: str | None = Query(None),
     from_date: date | None = Query(None),
     limit: int = Query(default=100, ge=1, le=500),
-    db: AsyncSession = Depends(get_db),
+    db: DBSession,
 ):
     q = select(Report).order_by(Report.report_date.desc()).limit(limit)
 
@@ -31,7 +30,7 @@ async def list_reports(
 
 
 @router.get("/{report_id}")
-async def get_report(report_id: UUID, db: AsyncSession = Depends(get_db)):
+async def get_report(report_id: UUID, db: DBSession):
     result = await db.execute(select(Report).where(Report.id == report_id))
     report = result.scalar_one_or_none()
     if not report:

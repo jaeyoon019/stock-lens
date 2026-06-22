@@ -79,6 +79,17 @@ async def generate_for_stock(
     # Short write transaction — API call is already done.
     async with AsyncSessionLocal() as session:
         async with session.begin():
+            # Re-check inside the transaction — prevents a wasted duplicate API call
+            # if two concurrent process invocations both passed the initial read check.
+            if (
+                await session.execute(
+                    select(Report.id)
+                    .where(Report.stock_id == stock_id)
+                    .where(Report.report_date == today)
+                )
+            ).scalar_one_or_none():
+                log.info("%s: report appeared between check and insert (concurrent run), skipping", ticker)
+                return
             session.add(
                 Report(
                     stock_id=stock_id,
