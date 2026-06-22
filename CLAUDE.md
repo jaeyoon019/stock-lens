@@ -15,6 +15,7 @@ AI-powered stock research assistant. Crawls financial news daily, generates stru
 | Report generator | **Stub** — `backend/app/services/report_generator.py` |
 | LLM evaluator | **Stub** — `backend/app/ai/evaluator.py` |
 | DB upsert in crawler | Implemented — `crawler/main.py` |
+| Local scheduler | **Stub** — `crawler/jobs/scheduler.py` (scheduling via GitHub Actions cron; APScheduler for local use only) |
 | React frontend | Scaffold only |
 
 Do not treat stubs as implemented. Check the file before assuming functionality exists.
@@ -47,6 +48,7 @@ stock-lens/
 ├── crawler/
 │   ├── collectors/          # yahoo.py, naver.py
 │   ├── parsers/             # article_parser.py
+│   ├── jobs/                # scheduler.py (local APScheduler — stub)
 │   └── main.py
 ├── frontend/src/
 ├── docs/
