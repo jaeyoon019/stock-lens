@@ -56,7 +56,7 @@ React Dashboard           ← TanStack Query + Recharts + TailwindCSS
 |-----------|-----------------------------------------------------|
 | Language  | Python 3.13                                         |
 | Backend   | FastAPI, SQLAlchemy 2.0, Alembic, Pydantic v2       |
-| AI        | OpenAI API (structured output), LlamaIndex (Phase 2)|
+| AI        | OpenAI API (structured output)                      |
 | Database  | PostgreSQL 16                                       |
 | Frontend  | React 18, TypeScript, Vite, TanStack Query, Recharts, TailwindCSS |
 | Infra     | Docker Compose, GitHub Actions                      |
@@ -137,7 +137,7 @@ See `.env.example`. Never commit the actual `.env` file.
 | `DATABASE_URL`     | PostgreSQL connection string  | `postgresql+asyncpg://user:pw@db/stocklens` |
 | `OPENAI_API_KEY`   | OpenAI API key                | `sk-...`                                    |
 | `OPENAI_MODEL`     | Model to use                  | `gpt-4o-mini`                               |
-| `CRAWL_TICKERS`    | Tickers to crawl (comma-sep)  | `AAPL,005930,NVDA`                          |
+| `CRAWL_TICKERS`    | Tickers to crawl (comma-sep)  | `AAPL,NVDA`                                 |
 | `LOG_LEVEL`        | Log level                     | `INFO`                                      |
 
 ---
@@ -179,7 +179,8 @@ Dashboard available at `http://localhost:5173`.
 ### 4. Run crawler manually
 
 ```bash
-docker compose exec backend python -m crawler.main
+# from repo root (requires DATABASE_URL to be set or backend/.env to exist)
+python crawler/main.py
 ```
 
 ---

@@ -1,10 +1,11 @@
 services:
   db:
     image: postgres:16-alpine
+    restart: unless-stopped
     environment:
-      POSTGRES_USER: stocklens
-      POSTGRES_PASSWORD: stocklens
-      POSTGRES_DB: stocklens
+      POSTGRES_USER: ${POSTGRES_USER:-stocklens}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-stocklens}
+      POSTGRES_DB: ${POSTGRES_DB:-stocklens}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:
@@ -18,6 +19,7 @@ services:
   backend:
     build: ./backend
     env_file: ./backend/.env
+    restart: unless-stopped
     ports:
       - "8000:8000"
     depends_on:

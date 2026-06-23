@@ -1,5 +1,8 @@
 name: Daily Crawler
 
+permissions:
+  contents: read
+
 on:
   schedule:
     - cron: '0 22 * * *'   # daily at 07:00 KST (UTC 22:00)
@@ -14,7 +17,8 @@ jobs:
         image: postgres:16-alpine
         env:
           POSTGRES_USER: stocklens
-          POSTGRES_PASSWORD: stocklens
+          # Ephemeral CI database — set CI_POSTGRES_PASSWORD repo variable to override.
+          POSTGRES_PASSWORD: ${{ vars.CI_POSTGRES_PASSWORD || 'stocklens' }}
           POSTGRES_DB: stocklens
         options: >-
           --health-cmd pg_isready
@@ -25,10 +29,10 @@ jobs:
           - 5432:5432
 
     env:
-      DATABASE_URL: postgresql+asyncpg://stocklens:stocklens@localhost/stocklens
+      DATABASE_URL: postgresql+asyncpg://stocklens:${{ vars.CI_POSTGRES_PASSWORD || 'stocklens' }}@localhost/stocklens
       OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
       OPENAI_MODEL: gpt-4o-mini
-      CRAWL_TICKERS: ${{ secrets.CRAWL_TICKERS }}
+      CRAWL_TICKERS: ${{ secrets.CRAWL_TICKERS || 'AAPL,NVDA' }}
 
     steps:
       - uses: actions/checkout@v4

@@ -6,9 +6,9 @@ __pycache__/
 venv/
 *.egg-info/
 
-# Environment
-backend/.env
+# Environment — catch root-level and all subdirectory .env files
 .env
+**/.env
 
 # Node
 frontend/node_modules/
