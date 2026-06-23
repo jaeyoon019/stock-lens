@@ -1,5 +1,11 @@
 import asyncio
+import os
+import sys
 from logging.config import fileConfig
+
+# Ensure the backend/ package root is on sys.path so `app` is importable
+# regardless of how alembic is invoked (CLI, Docker, GitHub Actions).
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from alembic import context
 from sqlalchemy.ext.asyncio import async_engine_from_config
